@@ -43,16 +43,42 @@ function llenar(select, items, valor, texto) {
   }
 }
 
-// El estado de caducidad va en texto, no solo en color
+// el estado de caducidad va en texto
 function insignia(dias) {
   const texto = dias < 0 ? `Caducado hace ${-dias} días` : `Vence en ${dias} días`;
   return el('span', 'insignia ' + (dias <= 30 ? 'alerta' : 'bien'), texto);
+}
+
+function foto(m, clase) {
+  const i = el('img', clase);
+  i.src = m.url_foto;
+  i.alt = 'Foto de ' + m.nombre;
+  i.loading = 'lazy';
+  return i;
+}
+
+// devuelve un mensaje de error, o null si todo salió bien
+async function subirFoto(id) {
+  const f = $('foto').files[0];
+  if (!f) return null;
+  if (f.size > 3 * 1024 * 1024) return 'la foto pesa más de 3 MB.';
+  const fd = new FormData();
+  fd.append('foto', f);
+  const r = await fetch('/api/medicamentos/' + id + '/foto', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token }, // sin Content-Type: el navegador lo pone
+    body: fd,
+  });
+  if (r.ok) return null;
+  const d = await r.json().catch(() => ({}));
+  return (d.error || 'no se pudo subir la foto.').toLowerCase() + ' Puedes subirla con Editar.';
 }
 
 function datos(m, campos) {
   const dl = el('dl', 'datos');
   const filas = {
     uso: ['Para qué sirve', m.descripcion || '—'],
+    tipo: ['Tipo', m.tipos || 'Sin clasificar'],
     farmacos: ['Fármacos', m.farmacos || '—'],
     marca: ['Marca', m.marca || '—'],
     cantidad: ['Cantidad', `${m.cantidad_restante} de ${m.cantidad_tabletas} tabletas`],
@@ -66,10 +92,11 @@ function datos(m, campos) {
   return dl;
 }
 
-// Tarjeta resumida: el detalle y el botón Editar están en "Ver más"
+// el detalle y el botón editar están en "Ver más"
 function tarjeta(m) {
   const c = el('article', 'card-med');
-  c.append(el('h2', null, m.nombre), datos(m, ['farmacos', 'cantidad']));
+  if (m.url_foto) c.append(foto(m, 'foto-card'));
+  c.append(el('h2', null, m.nombre), datos(m, ['tipo', 'farmacos', 'cantidad']));
 
   const elim = el('button', 'btn-peligro', 'Eliminar');
   elim.setAttribute('aria-label', 'Eliminar ' + m.nombre);
@@ -87,23 +114,44 @@ let verActual = null;
 function abrirVer(m) {
   verActual = m;
   $('verTitulo').textContent = m.nombre;
-  $('verDatos').replaceChildren(datos(m, ['uso', 'farmacos', 'marca', 'cantidad', 'estado', 'ubicacion']));
+  $('verDatos').replaceChildren(...(m.url_foto ? [foto(m, 'foto-ver')] : []),
+    datos(m, ['tipo', 'uso', 'farmacos', 'marca', 'cantidad', 'estado', 'ubicacion']));
   modalVer.show();
 }
 
 $('verEditar').addEventListener('click', () => {
   const m = verActual;
-  // Primero se cierra "Ver más" y luego se abre el formulario (nunca dos modales a la vez)
+  // primero se cierra "Ver más" y luego se abre el formulario
   $('modalVer').addEventListener('hidden.bs.modal', () => abrirEditar(m), { once: true });
   modalVer.hide();
 });
 
+const FILTROS = ['tipo', 'farmaco', 'marca', 'ubicacion', 'estado', 'caducidad'];
+
+function parametros() {
+  const p = new URLSearchParams();
+  p.set('q', $('q').value);
+  for (const c of FILTROS) if ($('f_' + c).value) p.set(c, $('f_' + c).value);
+  return p.toString();
+}
+
+function sincronizarChip() {
+  $('chipCaducar').setAttribute('aria-pressed', String($('f_caducidad').value === 'atencion'));
+}
+
 async function cargar() {
   try {
-    const meds = await api('/api/medicamentos?q=' + encodeURIComponent($('q').value));
+    const meds = await api('/api/medicamentos?' + parametros());
     const lista = $('lista');
     lista.replaceChildren();
-    if (!meds.length) lista.append(el('p', null, 'No hay medicamentos que coincidan.'));
+    const hayFiltro = parametros() !== 'q=';
+    $('conteo').textContent = meds.length === 1 ? '1 medicamento' : `${meds.length} medicamentos`;
+    if (hayFiltro) $('conteo').textContent += ' con los filtros elegidos';
+    if (!meds.length) {
+      lista.append(el('p', null, hayFiltro
+        ? 'Ningún medicamento coincide. Prueba quitar algún filtro.'
+        : 'Aún no hay medicamentos registrados. Usa "Añadir +" para agregar el primero.'));
+    }
     for (const m of meds) lista.append(tarjeta(m));
   } catch (err) { avisar(err.message, 'error'); }
 }
@@ -141,6 +189,20 @@ function abrirEditar(m) {
 }
 
 $('btnAnadir').addEventListener('click', abrirAgregar);
+for (const c of FILTROS) {
+  $('f_' + c).addEventListener('change', () => { sincronizarChip(); cargar(); });
+}
+$('chipCaducar').addEventListener('click', () => {
+  $('f_caducidad').value = $('f_caducidad').value === 'atencion' ? '' : 'atencion';
+  sincronizarChip();
+  cargar();
+});
+$('limpiar').addEventListener('click', () => {
+  $('filtros').reset();
+  $('q').value = '';
+  sincronizarChip();
+  cargar();
+});
 $('buscador').addEventListener('submit', (e) => { e.preventDefault(); cargar(); });
 $('salir').addEventListener('click', () => { localStorage.clear(); location.href = '/'; });
 
@@ -152,10 +214,14 @@ $('formMed').addEventListener('submit', async (e) => {
     if (editandoId) {
       body.id_motivo = $('motivoEdit').value;
       await api('/api/medicamentos/' + editandoId, { method: 'PUT', body: JSON.stringify(body) });
-      avisar('Cambios guardados. Quedaron registrados en el historial.');
+      const errFoto = await subirFoto(editandoId);
+      if (errFoto) avisar('Cambios guardados, pero ' + errFoto, 'error');
+      else avisar('Cambios guardados. Quedaron registrados en el historial.');
     } else {
-      await api('/api/medicamentos', { method: 'POST', body: JSON.stringify(body) });
-      avisar('Medicamento registrado.');
+      const nuevo = await api('/api/medicamentos', { method: 'POST', body: JSON.stringify(body) });
+      const errFoto = await subirFoto(nuevo.id_medi);
+      if (errFoto) avisar('Medicamento registrado, pero ' + errFoto, 'error');
+      else avisar('Medicamento registrado.');
     }
     modalMed.hide();
     cargar();
@@ -178,7 +244,7 @@ function agregarFarmaco(id, nombre, marcado) {
   i.type = 'checkbox'; i.id = 'f-' + id; i.value = id; i.checked = marcado;
   const l = el('label', 'form-check-label', nombre);
   l.htmlFor = i.id;
-  // Miligramos de este fármaco en este medicamento (aparece al marcarlo)
+  // miligramos de este fármaco en este medicamento (aparece al marcarlo)
   const mg = el('input', 'form-control form-control-sm mg');
   mg.type = 'number'; mg.min = '0.01'; mg.step = 'any'; mg.id = 'mg-' + id;
   mg.placeholder = 'mg';
@@ -193,9 +259,9 @@ function agregarFarmaco(id, nombre, marcado) {
   $('farmacos').append(d);
 }
 
-// Crear fármaco, marca o ubicación sin salir del formulario
+// crear fármaco, marca o ubicación sin salir del formulario
 const RAPIDO = {
-  farmacos: { titulo: 'Nuevo fármaco', desc: true },
+  farmacos: { titulo: 'Nuevo fármaco', desc: true, tipo: true },
   marcas: { titulo: 'Nueva marca' },
   ubicaciones: { titulo: 'Nueva ubicación' },
 };
@@ -205,6 +271,8 @@ function abrirRapido(tipo) {
   rapidoTipo = tipo;
   $('rapidoTitulo').textContent = RAPIDO[tipo].titulo;
   $('rapidoDescGrupo').hidden = !RAPIDO[tipo].desc;
+  $('rapidoTipoGrupo').hidden = !RAPIDO[tipo].tipo;
+  $('rapidoTipo').value = '';
   $('rapidoNombre').value = '';
   $('rapidoDesc').value = '';
   $('rapidoError').classList.add('d-none');
@@ -217,7 +285,7 @@ async function guardarRapido() {
   try {
     const n = await api('/api/catalogo/' + rapidoTipo, {
       method: 'POST',
-      body: JSON.stringify({ nombre: $('rapidoNombre').value, descripcion: $('rapidoDesc').value }),
+      body: JSON.stringify({ nombre: $('rapidoNombre').value, descripcion: $('rapidoDesc').value, id_tipo: $('rapidoTipo').value }),
     });
     if (rapidoTipo === 'farmacos') {
       agregarFarmaco(n.id, n.nombre, true); // queda marcado
@@ -229,6 +297,10 @@ async function guardarRapido() {
       s.append(o);
       s.value = n.id;
     }
+    const filtro = { farmacos: 'f_farmaco', marcas: 'f_marca', ubicaciones: 'f_ubicacion' }[rapidoTipo];
+    const o2 = el('option', null, n.nombre); // el nuevo también aparece en los filtros
+    o2.value = n.id;
+    $(filtro).append(o2);
     cerrarRapido();
   } catch (err) {
     $('rapidoError').textContent = err.message;
@@ -252,6 +324,12 @@ $('modalMed').addEventListener('hidden.bs.modal', cerrarRapido);
     llenar($('id_marca'), cat.marcas, 'id_marca', 'nombre');
     llenar($('motivo'), cat.motivos, 'id_motivo', 'nombre');
     llenar($('motivoEdit'), cat.motivos, 'id_motivo', 'nombre');
+    llenar($('rapidoTipo'), cat.tipos || [], 'id_tipo', 'nombre');
+    llenar($('f_tipo'), cat.tipos || [], 'id_tipo', 'nombre');
+    llenar($('f_farmaco'), cat.farmacos, 'id_farmaco', 'nombre');
+    llenar($('f_marca'), cat.marcas, 'id_marca', 'nombre');
+    llenar($('f_ubicacion'), cat.ubicaciones, 'id_ubi', 'nombre_ubi');
+    llenar($('f_estado'), cat.estados, 'id_estado', 'nombre_est');
     for (const f of cat.farmacos) agregarFarmaco(f.id_farmaco, f.nombre, false);
     cargar();
   } catch (err) { avisar(err.message, 'error'); }

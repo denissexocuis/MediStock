@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inventario </title>
+  <title>Inventario</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/medistock.css">
@@ -32,6 +32,29 @@
         <button class="btn btn-rose">Buscar</button>
       </form>
     </header>
+    <form id="filtros" class="filtros" aria-label="Filtros del inventario">
+      <button type="button" id="chipCaducar" class="chip" aria-pressed="false">Por caducar</button>
+      <div class="filtro"><label for="f_tipo">Tipo</label>
+        <select id="f_tipo" class="form-select form-select-sm"><option value="">Todos</option></select></div>
+      <div class="filtro"><label for="f_farmaco">Fármaco</label>
+        <select id="f_farmaco" class="form-select form-select-sm"><option value="">Todos</option></select></div>
+      <div class="filtro"><label for="f_marca">Marca</label>
+        <select id="f_marca" class="form-select form-select-sm"><option value="">Todas</option></select></div>
+      <div class="filtro"><label for="f_ubicacion">Ubicación</label>
+        <select id="f_ubicacion" class="form-select form-select-sm"><option value="">Todas</option></select></div>
+      <div class="filtro"><label for="f_estado">Estado</label>
+        <select id="f_estado" class="form-select form-select-sm"><option value="">Todos</option></select></div>
+      <div class="filtro"><label for="f_caducidad">Caducidad</label>
+        <select id="f_caducidad" class="form-select form-select-sm">
+          <option value="">Cualquiera</option>
+          <option value="atencion">Caducados o por caducar (30 días)</option>
+          <option value="caducados">Solo caducados</option>
+          <option value="90">Vencen en 90 días</option>
+          <option value="vigentes">Vigentes (más de 30 días)</option>
+        </select></div>
+      <button type="button" id="limpiar" class="btn btn-claro btn-sm">Limpiar filtros</button>
+    </form>
+    <p id="conteo" class="conteo" role="status"></p>
     <div id="aviso" class="aviso d-none" role="alert"></div>
     <section id="lista" class="grid" aria-label="Medicamentos"></section>
     <button id="btnAnadir" class="btn btn-rose fab">Añadir +</button>
@@ -64,6 +87,8 @@
                 <input id="rapidoNombre" class="form-control"></div>
               <div class="col-md-7" id="rapidoDescGrupo"><label for="rapidoDesc" class="form-label">Descripción (opcional)</label>
                 <input id="rapidoDesc" class="form-control"></div>
+              <div class="col-12" id="rapidoTipoGrupo"><label for="rapidoTipo" class="form-label">Tipo (analgésico, antibiótico...)</label>
+                <select id="rapidoTipo" class="form-select"><option value="">Sin clasificar</option></select></div>
             </div>
             <div class="mt-2 d-flex gap-2">
               <button type="button" id="rapidoGuardar" class="btn btn-rose btn-sm">Guardar</button>
@@ -85,6 +110,9 @@
             <select id="id_estado" class="form-select" required></select></div>
           <div class="col-md-6"><label for="fecha_caducidad" class="form-label">Fecha de caducidad</label>
             <input id="fecha_caducidad" type="date" class="form-control" required></div>
+          <div class="col-12"><label for="foto" class="form-label">Foto del medicamento (opcional)</label>
+            <input id="foto" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" aria-describedby="fotoAyuda">
+            <div id="fotoAyuda" class="form-text">JPG, PNG o WEBP, máximo 3 MB. Si ya tiene foto y eliges otra, la reemplaza.</div></div>
           <div class="col-12" id="grupoMotivo" hidden><label for="motivoEdit" class="form-label">Motivo del cambio</label>
             <select id="motivoEdit" class="form-select"></select></div>
         </div>
