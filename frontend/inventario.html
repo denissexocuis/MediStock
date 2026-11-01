@@ -51,11 +51,31 @@
             <input id="nombre" class="form-control" required></div>
           <div class="col-md-6"><label for="descripcion" class="form-label">Para qué sirve</label>
             <input id="descripcion" class="form-control"></div>
-          <div class="col-12"><fieldset><legend class="form-label fs-6">Fármacos</legend>
+          <div class="col-12"><fieldset>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <legend class="form-label fs-6 mb-0 w-auto">Fármacos</legend>
+              <button type="button" class="btn btn-claro btn-sm" data-nuevo="farmacos">+ Nuevo fármaco</button>
+            </div>
             <div id="farmacos" class="checks"></div></fieldset></div>
-          <div class="col-md-6"><label for="id_marca" class="form-label">Marca</label>
+          <div class="col-12 rapido" id="rapido" hidden>
+            <h3 class="h6" id="rapidoTitulo"></h3>
+            <div class="row g-2">
+              <div class="col-md-5"><label for="rapidoNombre" class="form-label">Nombre</label>
+                <input id="rapidoNombre" class="form-control"></div>
+              <div class="col-md-7" id="rapidoDescGrupo"><label for="rapidoDesc" class="form-label">Descripción (opcional)</label>
+                <input id="rapidoDesc" class="form-control"></div>
+            </div>
+            <div class="mt-2 d-flex gap-2">
+              <button type="button" id="rapidoGuardar" class="btn btn-rose btn-sm">Guardar</button>
+              <button type="button" id="rapidoCancelar" class="btn btn-claro btn-sm">Cancelar</button>
+            </div>
+            <div id="rapidoError" class="aviso error mt-2 d-none" role="alert"></div>
+          </div>
+          <div class="col-md-6"><div class="d-flex justify-content-between align-items-center"><label for="id_marca" class="form-label">Marca</label>
+              <button type="button" class="btn btn-claro btn-sm mb-1" data-nuevo="marcas" aria-label="Agregar una marca nueva">+ Nueva</button></div>
             <select id="id_marca" class="form-select"><option value="">Sin marca</option></select></div>
-          <div class="col-md-6"><label for="id_ubi" class="form-label">Ubicación</label>
+          <div class="col-md-6"><div class="d-flex justify-content-between align-items-center"><label for="id_ubi" class="form-label">Ubicación</label>
+              <button type="button" class="btn btn-claro btn-sm mb-1" data-nuevo="ubicaciones" aria-label="Agregar una ubicación nueva">+ Nueva</button></div>
             <select id="id_ubi" class="form-select"><option value="">Sin ubicación</option></select></div>
           <div class="col-md-6"><label for="cantidad_tabletas" class="form-label">Tabletas del empaque</label>
             <input id="cantidad_tabletas" type="number" min="0" class="form-control" required></div>

@@ -142,6 +142,66 @@ $('formBaja').addEventListener('submit', async (e) => {
   } catch (err) { avisar(err.message, 'error'); modalBaja.hide(); }
 });
 
+function agregarFarmaco(id, nombre, marcado) {
+  const d = el('div', 'form-check');
+  const i = el('input', 'form-check-input');
+  i.type = 'checkbox'; i.id = 'f-' + id; i.value = id; i.checked = marcado;
+  const l = el('label', 'form-check-label', nombre);
+  l.htmlFor = i.id;
+  d.append(i, l);
+  $('farmacos').append(d);
+}
+
+// Crear fármaco, marca o ubicación sin salir del formulario
+const RAPIDO = {
+  farmacos: { titulo: 'Nuevo fármaco', desc: true },
+  marcas: { titulo: 'Nueva marca' },
+  ubicaciones: { titulo: 'Nueva ubicación' },
+};
+let rapidoTipo = null;
+
+function abrirRapido(tipo) {
+  rapidoTipo = tipo;
+  $('rapidoTitulo').textContent = RAPIDO[tipo].titulo;
+  $('rapidoDescGrupo').hidden = !RAPIDO[tipo].desc;
+  $('rapidoNombre').value = '';
+  $('rapidoDesc').value = '';
+  $('rapidoError').classList.add('d-none');
+  $('rapido').hidden = false;
+  $('rapidoNombre').focus();
+}
+function cerrarRapido() { $('rapido').hidden = true; rapidoTipo = null; }
+
+async function guardarRapido() {
+  try {
+    const n = await api('/api/catalogo/' + rapidoTipo, {
+      method: 'POST',
+      body: JSON.stringify({ nombre: $('rapidoNombre').value, descripcion: $('rapidoDesc').value }),
+    });
+    if (rapidoTipo === 'farmacos') {
+      agregarFarmaco(n.id, n.nombre, true); // queda marcado
+    } else {
+      const s = $(rapidoTipo === 'marcas' ? 'id_marca' : 'id_ubi');
+      const o = el('option', null, n.nombre);
+      o.value = n.id;
+      s.append(o);
+      s.value = n.id;
+    }
+    cerrarRapido();
+  } catch (err) {
+    $('rapidoError').textContent = err.message;
+    $('rapidoError').classList.remove('d-none');
+  }
+}
+
+for (const b of document.querySelectorAll('[data-nuevo]')) b.addEventListener('click', () => abrirRapido(b.dataset.nuevo));
+$('rapidoGuardar').addEventListener('click', guardarRapido);
+$('rapidoCancelar').addEventListener('click', cerrarRapido);
+for (const i of [$('rapidoNombre'), $('rapidoDesc')]) {
+  i.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); guardarRapido(); } });
+}
+$('modalMed').addEventListener('hidden.bs.modal', cerrarRapido);
+
 (async () => {
   try {
     const cat = await api('/api/medicamentos/catalogos');
@@ -150,15 +210,7 @@ $('formBaja').addEventListener('submit', async (e) => {
     llenar($('id_marca'), cat.marcas, 'id_marca', 'nombre');
     llenar($('motivo'), cat.motivos, 'id_motivo', 'nombre');
     llenar($('motivoEdit'), cat.motivos, 'id_motivo', 'nombre');
-    for (const f of cat.farmacos) {
-      const d = el('div', 'form-check');
-      const i = el('input', 'form-check-input');
-      i.type = 'checkbox'; i.id = 'f-' + f.id_farmaco; i.value = f.id_farmaco;
-      const l = el('label', 'form-check-label', f.nombre);
-      l.htmlFor = i.id;
-      d.append(i, l);
-      $('farmacos').append(d);
-    }
+    for (const f of cat.farmacos) agregarFarmaco(f.id_farmaco, f.nombre, false);
     cargar();
   } catch (err) { avisar(err.message, 'error'); }
 })();
