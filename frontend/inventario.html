@@ -4,82 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inventario</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
 </head>
 <body>
-  <nav class="navbar navbar-dark bg-success">
-    <div class="container">
-      <span class="navbar-brand">MediStock</span>
-      <button id="salir" class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html" aria-current="page">Inventario</a>
+      <span class="soon">Historial (próximamente)</span>
+      <span class="soon">Marcas (próximamente)</span>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
     </div>
-  </nav>
+  </aside>
 
-  <main class="container py-4">
-    <h1 class="h3">Inventario</h1>
-    <div id="aviso" class="alert d-none" role="alert"></div>
+  <main>
+    <header class="top">
+      <h1 id="saludo">¡Hola!</h1>
+      <form id="buscador" role="search">
+        <label for="q" class="visually-hidden">Buscar medicamento</label>
+        <input id="q" class="form-control" placeholder="Buscar nombre, fármaco o uso">
+        <button class="btn btn-rose">Buscar</button>
+      </form>
+    </header>
+    <div id="aviso" class="aviso d-none" role="alert"></div>
+    <section id="lista" class="grid" aria-label="Medicamentos"></section>
+    <button id="btnAnadir" class="btn btn-rose fab">Añadir +</button>
+  </main>
+</div>
 
-    <form id="buscador" class="input-group mb-3" role="search">
-      <label for="q" class="visually-hidden">Buscar medicamento</label>
-      <input id="q" class="form-control" placeholder="Buscar por nombre o para qué sirve">
-      <button class="btn btn-success">Buscar</button>
-    </form>
-
-    <button class="btn btn-outline-success mb-3" data-bs-toggle="collapse" data-bs-target="#nuevo"
-            aria-expanded="false" aria-controls="nuevo">Registrar medicamento</button>
-
-    <form id="nuevo" class="collapse card card-body mb-4">
-      <div class="row g-3">
-        <div class="col-md-6"><label for="nombre" class="form-label">Nombre</label>
-          <input id="nombre" class="form-control" required></div>
-        <div class="col-md-6"><label for="descripcion" class="form-label">Para qué sirve</label>
-          <input id="descripcion" class="form-control"></div>
-        <div class="col-md-3"><label for="cantidad_tabletas" class="form-label">Tabletas del empaque</label>
-          <input id="cantidad_tabletas" type="number" min="0" class="form-control" required></div>
-        <div class="col-md-3"><label for="cantidad_restante" class="form-label">Tabletas restantes</label>
-          <input id="cantidad_restante" type="number" min="0" class="form-control" required></div>
-        <div class="col-md-3"><label for="fecha_caducidad" class="form-label">Fecha de caducidad</label>
-          <input id="fecha_caducidad" type="date" class="form-control" required></div>
-        <div class="col-md-3"><label for="id_estado" class="form-label">Estado</label>
-          <select id="id_estado" class="form-select" required></select></div>
-        <div class="col-md-6"><label for="id_ubi" class="form-label">Ubicación</label>
-          <select id="id_ubi" class="form-select"><option value="">Sin ubicación</option></select></div>
-        <div class="col-12"><button class="btn btn-success">Guardar medicamento</button></div>
+<div class="modal fade" id="modalMed" tabindex="-1" aria-labelledby="tituloMed" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <form id="formMed" class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="tituloMed">Agregar medicamento</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label for="nombre" class="form-label">Nombre del medicamento</label>
+            <input id="nombre" class="form-control" required></div>
+          <div class="col-md-6"><label for="descripcion" class="form-label">Para qué sirve</label>
+            <input id="descripcion" class="form-control"></div>
+          <div class="col-12"><fieldset><legend class="form-label fs-6">Fármacos</legend>
+            <div id="farmacos" class="checks"></div></fieldset></div>
+          <div class="col-md-6"><label for="id_marca" class="form-label">Marca</label>
+            <select id="id_marca" class="form-select"><option value="">Sin marca</option></select></div>
+          <div class="col-md-6"><label for="id_ubi" class="form-label">Ubicación</label>
+            <select id="id_ubi" class="form-select"><option value="">Sin ubicación</option></select></div>
+          <div class="col-md-6"><label for="cantidad_tabletas" class="form-label">Tabletas del empaque</label>
+            <input id="cantidad_tabletas" type="number" min="0" class="form-control" required></div>
+          <div class="col-md-6"><label for="cantidad_restante" class="form-label">Tabletas restantes</label>
+            <input id="cantidad_restante" type="number" min="0" class="form-control" required></div>
+          <div class="col-md-6"><label for="id_estado" class="form-label">Estado</label>
+            <select id="id_estado" class="form-select" required></select></div>
+          <div class="col-md-6"><label for="fecha_caducidad" class="form-label">Fecha de caducidad</label>
+            <input id="fecha_caducidad" type="date" class="form-control" required></div>
+          <div class="col-12" id="grupoMotivo" hidden><label for="motivoEdit" class="form-label">Motivo del cambio</label>
+            <select id="motivoEdit" class="form-select"></select></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-rose">Agregar</button>
       </div>
     </form>
-
-    <div class="table-responsive">
-      <table class="table align-middle">
-        <caption class="visually-hidden">Medicamentos en el inventario</caption>
-        <thead>
-          <tr><th scope="col">Nombre</th><th scope="col">Para qué sirve</th><th scope="col">Cantidad</th>
-              <th scope="col">Estado</th><th scope="col">Ubicación</th><th scope="col">Caducidad</th>
-              <th scope="col">Acciones</th></tr>
-        </thead>
-        <tbody id="lista"></tbody>
-      </table>
-    </div>
-  </main>
-
-  <div class="modal fade" id="modalBaja" tabindex="-1" aria-labelledby="tituloBaja" aria-hidden="true">
-    <div class="modal-dialog">
-      <form id="formBaja" class="modal-content">
-        <div class="modal-header">
-          <h2 class="modal-title h5" id="tituloBaja">Dar de baja</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <label for="motivo" class="form-label">Motivo</label>
-          <select id="motivo" class="form-select" required></select>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn btn-danger">Dar de baja</button>
-        </div>
-      </form>
-    </div>
   </div>
+</div>
 
-  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/inventario.js"></script>
+<div class="modal fade" id="modalBaja" tabindex="-1" aria-labelledby="tituloBaja" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formBaja" class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="tituloBaja">Eliminar medicamento</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <label for="motivo" class="form-label">Motivo</label>
+        <select id="motivo" class="form-select" required></select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-rose">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/js/inventario.js"></script>
 </body>
 </html>
