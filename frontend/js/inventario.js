@@ -10,6 +10,7 @@ const el = (tag, cls, txt) => {
 };
 const modalMed = new bootstrap.Modal($('modalMed'));
 const modalBaja = new bootstrap.Modal($('modalBaja'));
+const modalVer = new bootstrap.Modal($('modalVer'));
 let editandoId = null;
 let bajaId = null;
 
@@ -48,33 +49,54 @@ function insignia(dias) {
   return el('span', 'insignia ' + (dias <= 30 ? 'alerta' : 'bien'), texto);
 }
 
-function tarjeta(m) {
-  const c = el('article', 'card-med');
-  c.append(el('h2', null, m.nombre));
+function datos(m, campos) {
   const dl = el('dl', 'datos');
-  const fila = (k, v) => dl.append(el('dt', null, k), el('dd', null, v));
-  fila('Para qué sirve', m.descripcion || '—');
-  fila('Fármacos', m.farmacos || '—');
-  fila('Marca', m.marca || '—');
-  fila('Cantidad', `${m.cantidad_restante} de ${m.cantidad_tabletas}`);
-  fila('Estado', m.estado);
-  fila('Ubicación', m.ubicaciones);
+  const filas = {
+    uso: ['Para qué sirve', m.descripcion || '—'],
+    farmacos: ['Fármacos', m.farmacos || '—'],
+    marca: ['Marca', m.marca || '—'],
+    cantidad: ['Cantidad', `${m.cantidad_restante} de ${m.cantidad_tabletas} tabletas`],
+    estado: ['Estado', m.estado],
+    ubicacion: ['Ubicación', m.ubicaciones],
+  };
+  for (const c of campos) dl.append(el('dt', null, filas[c][0]), el('dd', null, filas[c][1]));
   const dd = el('dd');
   dd.append(m.fecha_caducidad + ' ', insignia(Number(m.dias_para_caducar)));
   dl.append(el('dt', null, 'Caducidad'), dd);
-  c.append(dl);
+  return dl;
+}
+
+// Tarjeta resumida: el detalle y el botón Editar están en "Ver más"
+function tarjeta(m) {
+  const c = el('article', 'card-med');
+  c.append(el('h2', null, m.nombre), datos(m, ['farmacos', 'cantidad']));
 
   const elim = el('button', 'btn-peligro', 'Eliminar');
   elim.setAttribute('aria-label', 'Eliminar ' + m.nombre);
   elim.addEventListener('click', () => { bajaId = m.id_medi; modalBaja.show(); });
-  const edit = el('button', 'btn btn-rose', 'Editar');
-  edit.setAttribute('aria-label', 'Editar ' + m.nombre);
-  edit.addEventListener('click', () => abrirEditar(m));
+  const ver = el('button', 'btn btn-rose', 'Ver más');
+  ver.setAttribute('aria-label', 'Ver más de ' + m.nombre);
+  ver.addEventListener('click', () => abrirVer(m));
   const acc = el('div', 'acciones');
-  acc.append(elim, edit);
+  acc.append(elim, ver);
   c.append(acc);
   return c;
 }
+
+let verActual = null;
+function abrirVer(m) {
+  verActual = m;
+  $('verTitulo').textContent = m.nombre;
+  $('verDatos').replaceChildren(datos(m, ['uso', 'farmacos', 'marca', 'cantidad', 'estado', 'ubicacion']));
+  modalVer.show();
+}
+
+$('verEditar').addEventListener('click', () => {
+  const m = verActual;
+  // Primero se cierra "Ver más" y luego se abre el formulario (nunca dos modales a la vez)
+  $('modalVer').addEventListener('hidden.bs.modal', () => abrirEditar(m), { once: true });
+  modalVer.hide();
+});
 
 async function cargar() {
   try {
@@ -91,6 +113,7 @@ const CAMPOS = ['nombre', 'descripcion', 'cantidad_tabletas', 'cantidad_restante
 function abrirAgregar() {
   editandoId = null;
   $('formMed').reset();
+  for (const mg of document.querySelectorAll('#farmacos .mg')) { mg.hidden = true; mg.required = false; }
   $('tituloMed').textContent = 'Agregar medicamento';
   $('formMed').querySelector('.modal-footer .btn-rose').textContent = 'Agregar';
   $('grupoMotivo').hidden = true;
@@ -104,7 +127,14 @@ function abrirEditar(m) {
   $('tituloMed').textContent = 'Editar medicamento';
   $('formMed').querySelector('.modal-footer .btn-rose').textContent = 'Guardar cambios';
   for (const k of CAMPOS) $(k).value = m[k] ?? '';
-  for (const i of document.querySelectorAll('#farmacos input')) i.checked = m.farmacos_ids.includes(Number(i.value));
+  for (const i of document.querySelectorAll('#farmacos input[type=checkbox]')) {
+    const f = (m.farmacos_det || []).find((x) => x.id === Number(i.value));
+    const mg = $('mg-' + i.value);
+    i.checked = !!f;
+    mg.hidden = !f;
+    mg.required = !!f;
+    mg.value = f && f.mg != null ? f.mg : '';
+  }
   $('grupoMotivo').hidden = false;
   $('motivoEdit').required = true;
   modalMed.show();
@@ -116,7 +146,7 @@ $('salir').addEventListener('click', () => { localStorage.clear(); location.href
 
 $('formMed').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const body = { farmacos: [...document.querySelectorAll('#farmacos input:checked')].map((i) => i.value) };
+  const body = { farmacos: [...document.querySelectorAll('#farmacos input[type=checkbox]:checked')].map((i) => ({ id: i.value, mg: $('mg-' + i.value).value })) };
   for (const k of CAMPOS) body[k] = $(k).value;
   try {
     if (editandoId) {
@@ -148,7 +178,18 @@ function agregarFarmaco(id, nombre, marcado) {
   i.type = 'checkbox'; i.id = 'f-' + id; i.value = id; i.checked = marcado;
   const l = el('label', 'form-check-label', nombre);
   l.htmlFor = i.id;
-  d.append(i, l);
+  // Miligramos de este fármaco en este medicamento (aparece al marcarlo)
+  const mg = el('input', 'form-control form-control-sm mg');
+  mg.type = 'number'; mg.min = '0.01'; mg.step = 'any'; mg.id = 'mg-' + id;
+  mg.placeholder = 'mg';
+  mg.setAttribute('aria-label', 'Miligramos de ' + nombre);
+  mg.hidden = !marcado; mg.required = marcado;
+  i.addEventListener('change', () => {
+    mg.hidden = !i.checked;
+    mg.required = i.checked;
+    if (i.checked) mg.focus(); else mg.value = '';
+  });
+  d.append(i, l, mg);
   $('farmacos').append(d);
 }
 
@@ -180,6 +221,7 @@ async function guardarRapido() {
     });
     if (rapidoTipo === 'farmacos') {
       agregarFarmaco(n.id, n.nombre, true); // queda marcado
+      $('mg-' + n.id).focus();
     } else {
       const s = $(rapidoTipo === 'marcas' ? 'id_marca' : 'id_ubi');
       const o = el('option', null, n.nombre);

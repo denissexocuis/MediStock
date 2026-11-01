@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inventario</title>
+  <title>Inventario </title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/medistock.css">
@@ -94,6 +94,22 @@
         <button class="btn btn-rose">Agregar</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal fade" id="modalVer" tabindex="-1" aria-labelledby="verTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="verTitulo"></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="verDatos"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-rose" id="verEditar">Editar</button>
+      </div>
+    </div>
   </div>
 </div>
 
