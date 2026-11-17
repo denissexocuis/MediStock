@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fármacos</title>
+  <script src="/js/ajustes.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html">Inventario</a>
+      <a href="/farmacos.html" aria-current="page">Fármacos</a>
+      <a href="/marcas.html">Marcas</a>
+      <a href="/doctores.html">Doctores</a>
+      <a href="/historial.html">Historial</a>
+      <a href="/opciones.html">Opciones</a>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
+    </div>
+  </aside>
+
+  <main id="contenido" tabindex="-1">
+    <header class="top">
+      <h1>Fármacos</h1>
+      <button id="btnNuevo" class="btn btn-rose">Nuevo fármaco +</button>
+    </header>
+
+    <div id="aviso" class="aviso d-none" role="alert"></div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="filas"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal fade" id="modalForm" tabindex="-1" aria-labelledby="tituloForm" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="form" class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="tituloForm">Nuevo fármaco</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <label for="nombreF" class="form-label">Nombre</label>
+        <input id="nombreF" class="form-control mb-3" required>
+        <label for="descF" class="form-label">Descripción (opcional)</label>
+        <input id="descF" class="form-control mb-3">
+        <label for="tipoF" class="form-label">Tipo</label>
+        <select id="tipoF" class="form-select mb-3"><option value="">Sin clasificar</option></select>
+        <div id="grupoMotivo" hidden>
+          <label for="motivoF" class="form-label">Motivo del cambio</label>
+          <select id="motivoF" class="form-select"></select>
+        </div>
+        <div id="errorForm" class="aviso error mt-3 d-none" role="alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-rose">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="modalBaja" tabindex="-1" aria-labelledby="tituloBaja" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formBaja" class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="tituloBaja">Eliminar fármaco</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p id="textoBaja"></p>
+        <label for="motivoBaja" class="form-label">Motivo</label>
+        <select id="motivoBaja" class="form-select" required></select>
+        <div id="errorBaja" class="aviso error mt-3 d-none" role="alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-rose">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/js/comun.js"></script>
+<script src="/js/farmacos.js"></script>
+</body>
+</html>

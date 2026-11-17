@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Opciones</title>
+  <script src="/js/ajustes.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html">Inventario</a>
+      <a href="/farmacos.html">Fármacos</a>
+      <a href="/marcas.html">Marcas</a>
+      <a href="/doctores.html">Doctores</a>
+      <a href="/historial.html">Historial</a>
+      <a href="/opciones.html" aria-current="page">Opciones</a>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
+    </div>
+  </aside>
+
+  <main id="contenido">
+    <header class="top">
+      <h1>Opciones</h1>
+    </header>
+    <p class="opc-ayuda">Los cambios se aplican al instante y se guardan en este navegador.</p>
+    <div id="estado" class="visually-hidden" role="status" aria-live="polite"></div>
+
+    <form id="opciones">
+      <fieldset class="opc-grupo">
+        <legend>Paleta de colores</legend>
+        <p class="opc-ayuda">Cambia el color principal del sistema.</p>
+        <ul class="opc-lista" id="g-paleta"></ul>
+      </fieldset>
+
+      <fieldset class="opc-grupo">
+        <legend>Tema y contraste</legend>
+        <p class="opc-ayuda">Elige entre claro, oscuro o alto contraste si te cuesta leer.</p>
+        <ul class="opc-lista" id="g-tema"></ul>
+      </fieldset>
+
+      <fieldset class="opc-grupo">
+        <legend>Tamaño del texto</legend>
+       <p class="opc-ayuda">Agranda o reduce todo el sistema, de 50 % a 200 %. Si el texto no cabe, la pantalla se reacomoda.</p>
+        <ul class="opc-lista" id="g-zoom"></ul>
+      </fieldset>
+
+      <fieldset class="opc-grupo">
+        <legend>Lectura y navegación</legend>
+        <div id="g-extra"></div>
+      </fieldset>
+
+      <section class="opc-grupo" aria-labelledby="t-prev">
+        <h2 id="t-prev" class="h5">Vista previa</h2>
+        <article class="card-med" style="max-width:340px">
+          <h3 class="h6 m-0">Paracetamol</h3>
+          <dl class="datos"><dt>Tipo</dt><dd>Analgésico</dd><dt>Cantidad</dt><dd>10 de 20 tabletas</dd>
+            <dt>Caducidad</dt><dd>2027-03-10 <span class="insignia bien">Vence en 114 días</span></dd></dl>
+          <div class="acciones">
+            <button type="button" class="btn-peligro">Eliminar</button>
+            <button type="button" class="btn btn-rose">Ver más</button>
+          </div>
+        </article>
+      </section>
+
+      <button type="button" id="restablecer" class="btn btn-claro">Restablecer valores</button>
+    </form>
+  </main>
+</div>
+<script src="/js/opciones.js"></script>
+</body>
+</html>

@@ -4,38 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inventario</title>
+  <script src="/js/ajustes.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/medistock.css">
 </head>
 <body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
 <div class="app">
   <aside class="side">
     <div class="brand">MediStock</div>
     <nav aria-label="Principal">
-      <a href="/inventario.html" aria-current="page">Inventario</a>
-      <span class="soon">Historial (próximamente)</span>
-      <span class="soon">Marcas (próximamente)</span>
-    </nav>
+    <a href="/inventario.html" aria-current="page">Inventario</a>
+    <a href="/farmacos.html">Fármacos</a>
+    <a href="/marcas.html">Marcas</a>
+    <a href="/doctores.html">Doctores</a>
+    <a href="/historial.html">Historial</a>
+      <a href="/opciones.html">Opciones</a>
+  </nav>
     <div class="side-foot">
       <button id="salir" class="link-btn">Cerrar sesión</button>
       <span id="quien"></span>
     </div>
   </aside>
 
-  <main>
+  <main id="contenido" tabindex="-1">
     <header class="top">
       <h1 id="saludo">¡Hola!</h1>
       <form id="buscador" role="search">
         <label for="q" class="visually-hidden">Buscar medicamento</label>
-        <input id="q" class="form-control" placeholder="Buscar nombre, fármaco o uso">
+        <input id="q" class="form-control" placeholder="Buscar ">
         <button class="btn btn-rose">Buscar</button>
       </form>
     </header>
+    <div id="avisoCaducidad" class="aviso error d-none" role="status">
+      <span id="textoCaducidad"></span>
+      <button type="button" id="verCaducidad" class="btn btn-claro btn-sm ms-2">Ver cuáles</button>
+    </div>
     <form id="filtros" class="filtros" aria-label="Filtros del inventario">
       <button type="button" id="chipCaducar" class="chip" aria-pressed="false">Por caducar</button>
-      <div class="filtro"><label for="f_tipo">Tipo</label>
-        <select id="f_tipo" class="form-select form-select-sm"><option value="">Todos</option></select></div>
+      <div class="filtro"><label for="f_categoria">Categoría</label>
+        <select id="f_categoria" class="form-select form-select-sm"><option value="">Todas</option></select></div>
       <div class="filtro"><label for="f_farmaco">Fármaco</label>
         <select id="f_farmaco" class="form-select form-select-sm"><option value="">Todos</option></select></div>
       <div class="filtro"><label for="f_marca">Marca</label>
@@ -96,6 +105,12 @@
             </div>
             <div id="rapidoError" class="aviso error mt-2 d-none" role="alert"></div>
           </div>
+          <div class="col-12"><fieldset>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <legend class="form-label fs-6 mb-0 w-auto">Categorías</legend>
+              <button type="button" class="btn btn-claro btn-sm" data-nuevo="categorias">+ Nueva categoría</button>
+            </div>
+            <div id="categorias" class="checks"></div></fieldset></div>
           <div class="col-md-6"><div class="d-flex justify-content-between align-items-center"><label for="id_marca" class="form-label">Marca</label>
               <button type="button" class="btn btn-claro btn-sm mb-1" data-nuevo="marcas" aria-label="Agregar una marca nueva">+ Nueva</button></div>
             <select id="id_marca" class="form-select"><option value="">Sin marca</option></select></div>
@@ -112,9 +127,9 @@
             <input id="fecha_caducidad" type="date" class="form-control" required></div>
           <div class="col-12"><label for="foto" class="form-label">Foto del medicamento (opcional)</label>
             <input id="foto" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" aria-describedby="fotoAyuda">
-            <div id="fotoAyuda" class="form-text">JPG, PNG o WEBP, máximo 3 MB. Si ya tiene foto y eliges otra, la reemplaza.</div></div>
+            <div id="fotoAyuda" class="form-text">JPG, PNG o WEBP, máximo 3 MB.</div></div>
           <div class="col-12" id="grupoMotivo" hidden><label for="motivoEdit" class="form-label">Motivo del cambio</label>
-            <select id="motivoEdit" class="form-select"></select></div>
+            <select id="motivoEdit" class="form-select"><option value="">Elige un motivo</option></select></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -150,7 +165,11 @@
       </div>
       <div class="modal-body">
         <label for="motivo" class="form-label">Motivo</label>
-        <select id="motivo" class="form-select" required></select>
+        <select id="motivo" class="form-select" required><option value="">Elige un motivo</option></select>
+        <div id="grupoPaciente" class="mt-3" hidden>
+          <label for="pac_nombre" class="form-label">Paciente al que se entregó</label>
+          <input id="pac_nombre" class="form-control" autocomplete="off" placeholder="Escribe el nombre completo del paciente">
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>

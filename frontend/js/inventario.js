@@ -5,7 +5,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
-  if (txt !== undefined) e.textContent = txt; // textContent evita XSS
+  if (txt !== undefined) e.textContent = txt; // evita XSS
   return e;
 };
 const modalMed = new bootstrap.Modal($('modalMed'));
@@ -23,7 +23,7 @@ async function api(url, opts = {}) {
     ...opts,
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
   });
-  if (r.status === 401) { localStorage.clear(); location.href = '/login'; return; }
+  if (r.status === 401) { localStorage.removeItem('token'); localStorage.removeItem('nombre'); location.href = '/login'; return; }
   const data = await r.json();
   if (!r.ok) throw new Error(data.error);
   return data;
@@ -78,7 +78,7 @@ function datos(m, campos) {
   const dl = el('dl', 'datos');
   const filas = {
     uso: ['Para qué sirve', m.descripcion || '—'],
-    tipo: ['Tipo', m.tipos || 'Sin clasificar'],
+    categoria: ['Categoría', m.categorias || 'Sin categoría'],
     farmacos: ['Fármacos', m.farmacos || '—'],
     marca: ['Marca', m.marca || '—'],
     cantidad: ['Cantidad', `${m.cantidad_restante} de ${m.cantidad_tabletas} tabletas`],
@@ -96,11 +96,11 @@ function datos(m, campos) {
 function tarjeta(m) {
   const c = el('article', 'card-med');
   if (m.url_foto) c.append(foto(m, 'foto-card'));
-  c.append(el('h2', null, m.nombre), datos(m, ['tipo', 'farmacos', 'cantidad']));
+  c.append(el('h2', null, m.nombre), datos(m, ['categoria', 'farmacos', 'cantidad']));
 
   const elim = el('button', 'btn-peligro', 'Eliminar');
   elim.setAttribute('aria-label', 'Eliminar ' + m.nombre);
-  elim.addEventListener('click', () => { bajaId = m.id_medi; modalBaja.show(); });
+  elim.addEventListener('click', () => abrirBaja(m));
   const ver = el('button', 'btn btn-rose', 'Ver más');
   ver.setAttribute('aria-label', 'Ver más de ' + m.nombre);
   ver.addEventListener('click', () => abrirVer(m));
@@ -110,12 +110,48 @@ function tarjeta(m) {
   return c;
 }
 
+// "Entregado" pide los datos de quien recibe el medicamento
+const PIDE_PACIENTE = new Set(); // ids de motivos que piden el nombre del paciente ("Entregado a...")
+function actualizarPaciente() {
+  const entrega = PIDE_PACIENTE.has(Number($('motivo').value));
+  $('grupoPaciente').hidden = !entrega;
+  $('pac_nombre').required = entrega;
+  if (!entrega) $('pac_nombre').value = '';
+}
+
+function abrirBaja(m) {
+  bajaId = m.id_medi;
+  $('formBaja').reset();
+  actualizarPaciente();
+  modalBaja.show();
+}
+$('motivo').addEventListener('change', actualizarPaciente);
+
+// aviso al entrar: caducados y por caducar
+async function avisoCaducidad() {
+  $('avisoCaducidad').classList.add('d-none');
+  try {
+    const r = await api('/api/medicamentos/resumen');
+    const partes = [];
+    if (r.caducados) partes.push(`${r.caducados} caducado${r.caducados > 1 ? 's' : ''}`);
+    if (r.por_caducar) partes.push(`${r.por_caducar} por caducar en los próximos 30 días`);
+    if (!partes.length) return;
+    $('textoCaducidad').textContent = 'Atención: tienes ' + partes.join(' y ') + '.';
+    $('avisoCaducidad').classList.remove('d-none');
+  } catch { /* el aviso es opcional */ }
+}
+$('verCaducidad').addEventListener('click', () => {
+  $('f_caducidad').value = 'atencion';
+  sincronizarChip();
+  cargar();
+});
+
 let verActual = null;
 function abrirVer(m) {
   verActual = m;
   $('verTitulo').textContent = m.nombre;
   $('verDatos').replaceChildren(...(m.url_foto ? [foto(m, 'foto-ver')] : []),
-    datos(m, ['tipo', 'uso', 'farmacos', 'marca', 'cantidad', 'estado', 'ubicacion']));
+    datos(m, ['categoria', 'uso', 'farmacos', 'marca', 'cantidad', 'estado', 'ubicacion']));
   modalVer.show();
 }
 
@@ -126,7 +162,7 @@ $('verEditar').addEventListener('click', () => {
   modalVer.hide();
 });
 
-const FILTROS = ['tipo', 'farmaco', 'marca', 'ubicacion', 'estado', 'caducidad'];
+const FILTROS = ['categoria', 'farmaco', 'marca', 'ubicacion', 'estado', 'caducidad'];
 
 function parametros() {
   const p = new URLSearchParams();
@@ -183,6 +219,9 @@ function abrirEditar(m) {
     mg.required = !!f;
     mg.value = f && f.mg != null ? f.mg : '';
   }
+  for (const i of document.querySelectorAll('#categorias input[type=checkbox]')) {
+    i.checked = (m.categorias_ids || []).includes(Number(i.value));
+  }
   $('grupoMotivo').hidden = false;
   $('motivoEdit').required = true;
   modalMed.show();
@@ -204,11 +243,12 @@ $('limpiar').addEventListener('click', () => {
   cargar();
 });
 $('buscador').addEventListener('submit', (e) => { e.preventDefault(); cargar(); });
-$('salir').addEventListener('click', () => { localStorage.clear(); location.href = '/'; });
+$('salir').addEventListener('click', () => { localStorage.removeItem('token'); localStorage.removeItem('nombre'); location.href = '/'; });
 
 $('formMed').addEventListener('submit', async (e) => {
   e.preventDefault();
   const body = { farmacos: [...document.querySelectorAll('#farmacos input[type=checkbox]:checked')].map((i) => ({ id: i.value, mg: $('mg-' + i.value).value })) };
+  body.categorias = [...document.querySelectorAll('#categorias input[type=checkbox]:checked')].map((i) => i.value);
   for (const k of CAMPOS) body[k] = $(k).value;
   try {
     if (editandoId) {
@@ -231,10 +271,14 @@ $('formMed').addEventListener('submit', async (e) => {
 $('formBaja').addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
-    await api('/api/medicamentos/' + bajaId, { method: 'DELETE', body: JSON.stringify({ id_motivo: $('motivo').value }) });
+    await api('/api/medicamentos/' + bajaId, { method: 'DELETE', body: JSON.stringify({
+      id_motivo: $('motivo').value,
+      paciente: $('grupoPaciente').hidden ? null : { nombre: $('pac_nombre').value },
+    }) });
     modalBaja.hide();
     avisar('Medicamento eliminado. Quedó registrado en el historial.');
     cargar();
+    avisoCaducidad();
   } catch (err) { avisar(err.message, 'error'); modalBaja.hide(); }
 });
 
@@ -259,9 +303,20 @@ function agregarFarmaco(id, nombre, marcado) {
   $('farmacos').append(d);
 }
 
-// crear fármaco, marca o ubicación sin salir del formulario
+function agregarCategoria(id, nombre, marcado) {
+  const d = el('div', 'form-check');
+  const i = el('input', 'form-check-input');
+  i.type = 'checkbox'; i.id = 'c-' + id; i.value = id; i.checked = marcado;
+  const l = el('label', 'form-check-label', nombre);
+  l.htmlFor = i.id;
+  d.append(i, l);
+  $('categorias').append(d);
+}
+
+// crear fármaco, categoría, marca o ubicación sin salir del formulario
 const RAPIDO = {
   farmacos: { titulo: 'Nuevo fármaco', desc: true, tipo: true },
+  categorias: { titulo: 'Nueva categoría' },
   marcas: { titulo: 'Nueva marca' },
   ubicaciones: { titulo: 'Nueva ubicación' },
 };
@@ -290,6 +345,8 @@ async function guardarRapido() {
     if (rapidoTipo === 'farmacos') {
       agregarFarmaco(n.id, n.nombre, true); // queda marcado
       $('mg-' + n.id).focus();
+    } else if (rapidoTipo === 'categorias') {
+      agregarCategoria(n.id, n.nombre, true); // queda marcada
     } else {
       const s = $(rapidoTipo === 'marcas' ? 'id_marca' : 'id_ubi');
       const o = el('option', null, n.nombre);
@@ -297,7 +354,7 @@ async function guardarRapido() {
       s.append(o);
       s.value = n.id;
     }
-    const filtro = { farmacos: 'f_farmaco', marcas: 'f_marca', ubicaciones: 'f_ubicacion' }[rapidoTipo];
+    const filtro = { farmacos: 'f_farmaco', categorias: 'f_categoria', marcas: 'f_marca', ubicaciones: 'f_ubicacion' }[rapidoTipo];
     const o2 = el('option', null, n.nombre); // el nuevo también aparece en los filtros
     o2.value = n.id;
     $(filtro).append(o2);
@@ -322,15 +379,18 @@ $('modalMed').addEventListener('hidden.bs.modal', cerrarRapido);
     llenar($('id_estado'), cat.estados, 'id_estado', 'nombre_est');
     llenar($('id_ubi'), cat.ubicaciones, 'id_ubi', 'nombre_ubi');
     llenar($('id_marca'), cat.marcas, 'id_marca', 'nombre');
-    llenar($('motivo'), cat.motivos, 'id_motivo', 'nombre');
-    llenar($('motivoEdit'), cat.motivos, 'id_motivo', 'nombre');
+    for (const m of cat.motivos) if (m.pide_paciente) PIDE_PACIENTE.add(m.id_motivo);
+    llenar($('motivo'), cat.motivos.filter((m) => m.usos.includes('baja_medicamento')), 'id_motivo', 'nombre');
+    llenar($('motivoEdit'), cat.motivos.filter((m) => m.usos.includes('editar')), 'id_motivo', 'nombre'); // al editar no se "entrega"
     llenar($('rapidoTipo'), cat.tipos || [], 'id_tipo', 'nombre');
-    llenar($('f_tipo'), cat.tipos || [], 'id_tipo', 'nombre');
+    llenar($('f_categoria'), cat.categorias || [], 'id_categoria', 'nombre');
+    for (const c of cat.categorias || []) agregarCategoria(c.id_categoria, c.nombre, false);
     llenar($('f_farmaco'), cat.farmacos, 'id_farmaco', 'nombre');
     llenar($('f_marca'), cat.marcas, 'id_marca', 'nombre');
     llenar($('f_ubicacion'), cat.ubicaciones, 'id_ubi', 'nombre_ubi');
     llenar($('f_estado'), cat.estados, 'id_estado', 'nombre_est');
     for (const f of cat.farmacos) agregarFarmaco(f.id_farmaco, f.nombre, false);
     cargar();
+    avisoCaducidad();
   } catch (err) { avisar(err.message, 'error'); }
 })();

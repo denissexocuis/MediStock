@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Iniciar sesión </title>
+  <script src="/js/ajustes.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/medistock.css">
 </head>
 <body>
-  <main class="login">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+  <main id="contenido" tabindex="-1" class="login">
     <div class="login-box">
       <h1 class="logo">MediStock</h1>
       <form id="form">
@@ -22,9 +24,18 @@
         </div>
         <div id="error" class="aviso error d-none" role="alert"></div>
         <button class="btn btn-rose w-100 mt-2">Ingresar</button>
+
+          <p class="text-center mt-3 mb-0">
+            ¿No tienes cuenta? <a href="/registro">Regístrate</a>
+          </p>
       </form>
     </div>
+    <details class="panel-acc" id="panelAjustes">
+      <summary>Opciones de accesibilidad</summary>
+      <div id="panelCuerpo"></div>
+    </details>
   </main>
+  <script src="/js/panel-ajustes.js"></script>
   <script src="/js/login.js"></script>
 </body>
 </html>

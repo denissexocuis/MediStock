@@ -26,5 +26,6 @@ form.addEventListener('submit', async (e) => {
   }
   localStorage.setItem('token', data.token);
   localStorage.setItem('nombre', data.nombre);
+    Ajustes.alIniciarSesion(data.ajustes); // opciones del doctor
   location.href = '/inventario.html';
 });

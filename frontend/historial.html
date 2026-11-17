@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial</title>
+  <script src="/js/ajustes.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html">Inventario</a>
+      <a href="/farmacos.html">Fármacos</a>
+      <a href="/marcas.html">Marcas</a>
+      <a href="/doctores.html">Doctores</a>
+      <a href="/historial.html" aria-current="page">Historial</a>
+      <a href="/opciones.html">Opciones</a>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
+    </div>
+  </aside>
+
+   <main id="contenido" tabindex="-1">
+    <header class="top">
+      <h1>Historial</h1>
+      <div class="d-flex gap-2 no-imprimir">
+        <button type="button" id="csv" class="btn btn-claro btn-sm">Descargar CSV</button>
+        <button type="button" id="imprimir" class="btn btn-claro btn-sm">Imprimir</button>
+      </div>
+    </header>
+
+    <form id="filtros" class="filtros no-imprimir" aria-label="Filtros del historial">
+      <div class="filtro"><label for="f_q">Medicamento o paciente</label>
+        <input id="f_q" class="form-control form-control-sm" placeholder="Ej. Paracetamol"></div>
+      <div class="filtro"><label for="f_doctor">Doctor</label>
+        <select id="f_doctor" class="form-select form-select-sm"><option value="">Todos</option></select></div>
+      <div class="filtro"><label for="f_entidad">Qué</label>
+        <select id="f_entidad" class="form-select form-select-sm">
+          <option value="">Todo</option>
+          <option value="medicamento">Medicamentos</option>
+          <option value="farmaco">Fármacos</option>
+          <option value="marca">Marcas</option>
+          <option value="ubicacion">Ubicaciones</option>
+          <option value="categoria">Categorías</option>
+        </select></div>
+      <div class="filtro"><label for="f_accion">Acción</label>
+        <select id="f_accion" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          <option value="crear">Creó</option>
+          <option value="editar">Editó</option>
+          <option value="eliminar">Eliminó</option>
+          <option value="reactivar">Reactivó</option>
+        </select></div>
+      <div class="filtro"><label for="f_desde">Desde</label>
+        <input id="f_desde" type="date" class="form-control form-control-sm"></div>
+      <div class="filtro"><label for="f_hasta">Hasta</label>
+        <input id="f_hasta" type="date" class="form-control form-control-sm"></div>
+      <button class="btn btn-rose btn-sm">Filtrar</button>
+      <button type="button" id="borrar" class="btn btn-claro btn-sm">Borrar filtros</button>
+    </form>
+
+    <div class="filtros no-imprimir" role="group" aria-label="Rangos rápidos de fecha">
+      <button type="button" class="chip" data-rango="hoy">Hoy</button>
+      <button type="button" class="chip" data-rango="7">Últimos 7 días</button>
+      <button type="button" class="chip" data-rango="mes">Este mes</button>
+    </div>
+
+    <p id="resumen" class="conteo" role="status"></p>
+    <div id="aviso" class="aviso d-none" role="alert"></div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <caption class="visually-hidden">Movimientos registrados en el sistema</caption>
+        <thead>
+          <tr>
+            <th scope="col">Fecha</th><th scope="col">Hora</th><th scope="col">Doctor</th>
+            <th scope="col">Acción</th><th scope="col">Qué</th><th scope="col">Motivo</th>
+            <th scope="col">Paciente</th><th scope="col">Cambios</th>
+          </tr>
+        </thead>
+        <tbody id="filas"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="/js/comun.js"></script>
+<script src="/js/historial.js"></script>
+</body>
+</html>

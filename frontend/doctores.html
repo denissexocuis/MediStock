@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doctores</title>
+  <script src="/js/ajustes.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html">Inventario</a>
+      <a href="/farmacos.html">Fármacos</a>
+      <a href="/marcas.html">Marcas</a>
+      <a href="/doctores.html" aria-current="page" >Doctores</a>
+      <a href="/historial.html">Historial</a>
+      <a href="/opciones.html">Opciones</a>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
+    </div>
+  </aside>
+
+  <main id="contenido" tabindex="-1">
+    <header class="top"><h1>Doctores</h1></header>
+
+    <p id="conteo" class="conteo" role="status"></p>
+    <div id="aviso" class="aviso d-none" role="alert"></div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <caption class="visually-hidden">Doctores activos y su actividad</caption>
+        <thead>
+          <tr>
+            <th scope="col">Doctor</th><th scope="col">Especialidad</th>
+            <th scope="col">Último acceso</th><th scope="col">Movimientos</th><th scope="col">Historial</th>
+          </tr>
+        </thead>
+        <tbody id="filas"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="/js/comun.js"></script>
+<script src="/js/doctores.js"></script>
+</body>
+</html>
