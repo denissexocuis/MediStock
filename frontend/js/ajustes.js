@@ -75,6 +75,17 @@
   }
   window.addEventListener('pagehide', volcar);
 
+  // enlace "Ayuda" en el menú lateral de todas las páginas con sesión
+  document.addEventListener('DOMContentLoaded', function () {
+    var nav = document.querySelector('.side nav');
+    if (!nav || nav.querySelector('a[href="/ayuda.html"]')) return;
+    var a = document.createElement('a');
+    a.href = '/ayuda.html';
+    a.textContent = 'Ayuda';
+    if (location.pathname === '/ayuda.html') a.setAttribute('aria-current', 'page');
+    nav.appendChild(a);
+  });
+
   window.Ajustes = {
     DEF: DEF, leer: leer, aplicar: aplicar, alFallar: null,
     cambiar: function (campo, valor) { var a = leer(); a[campo] = valor; a = limpiar(a); guardar(a); aplicar(a); enviar(a); return a; },

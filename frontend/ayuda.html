@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ayuda</title>
+  <script src="/js/ajustes.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/medistock.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">MediStock</div>
+    <nav aria-label="Principal">
+      <a href="/inventario.html">Inventario</a>
+      <a href="/farmacos.html">Fármacos</a>
+      <a href="/marcas.html">Marcas</a>
+      <a href="/doctores.html">Doctores</a>
+      <a href="/historial.html">Historial</a>
+      <a href="/opciones.html">Opciones</a>
+    </nav>
+    <div class="side-foot">
+      <button id="salir" class="link-btn">Cerrar sesión</button>
+      <span id="quien"></span>
+    </div>
+  </aside>
+
+  <main id="contenido" tabindex="-1">
+    <header class="top">
+      <h1>Ayuda</h1>
+      <button type="button" id="verRecorrido" class="btn btn-rose">Ver el recorrido paso a paso</button>
+    </header>
+    <p class="opc-ayuda">Un resumen de qué se hace en cada parte de MediStock y cómo.</p>
+    <div id="aviso" class="aviso d-none" role="alert"></div>
+    <nav aria-label="Temas de ayuda"><ul id="indice" class="list-unstyled"></ul></nav>
+    <div id="guia"></div>
+    <p class="mt-4 small"><a href="/privacidad.html">Aviso de privacidad</a> · <a href="/terminos.html">Términos y condiciones</a></p>
+  </main>
+</div>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/js/comun.js"></script>
+<script src="/js/tutorial.js"></script>
+<script src="/js/ayuda.js"></script>
+</body>
+</html>
